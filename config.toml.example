@@ -1,0 +1,18 @@
+[server]
+    name = "login"
+    addr = ":8080"
+
+[server.logger]
+    level = "debug"
+
+# 数据库相关
+[database]
+  driver = "mysql"
+
+[mysql]
+  dbHost = "127.0.0.1"
+  dbPort = "3306"
+  dbName = "login"
+  dbParams = "parseTime=true&loc=Local"
+  dbUser = "root"
+  dbPassword = "root"
