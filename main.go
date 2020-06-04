@@ -26,6 +26,7 @@ func main() {
 
 	db := database.DB
 	app.Logger().Info("数据库测试：", db)
+
 	// Globally allow options method to enable CORS
 	app.AllowMethods(iris.MethodOptions)
 
