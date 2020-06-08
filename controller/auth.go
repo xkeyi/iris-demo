@@ -1,11 +1,14 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 
 	"login/model"
 	"login/util"
+	"login/middleware"
 )
 
 type AuthController struct {
@@ -31,14 +34,47 @@ func (ac *AuthController) BeforeActivation(b mvc.BeforeActivation) {
 
 	b.Handle("POST", "/register", "Register")
 	b.Handle("POST", "/login", "Login")
+	b.Handle("POST", "/me", "Me", middleware.JWT.Serve)
 }
 
 func (ac *AuthController) Get() {
 	iris.New().Logger().Info(" Get Test ")
+
+	peter := UserRegister{
+		Name: "John",
+		Username:  "Doe",
+		Password:      "Neither FBI knows!!!",
+	}
+	//手动设置内容类型: ctx.ContentType("application/javascript")
+	ac.Ctx.JSON(peter)
 }
 
 func (ac *AuthController) Login() {
 	iris.New().Logger().Info(" Post Login ")
+
+	// 用户ID：1
+	token, err := util.GetJWTString(1)
+	if err != nil {
+		ac.Ctx.StatusCode(500)
+		ac.Ctx.JSON(iris.Map{
+			"status": 500,
+			"msg": err,
+		})
+	}
+
+	ac.Ctx.JSON(iris.Map{
+		"token": token,
+		"exp": time.Now().Add(120 * time.Minute * time.Duration(1)).Unix(),
+	})
+}
+
+func (ac *AuthController) Me() {
+	peter := UserRegister{
+		Name: "llz",
+		Username:  "llz",
+	}
+	//手动设置内容类型: ctx.ContentType("application/javascript")
+	ac.Ctx.JSON(peter)
 }
 
 func (ac *AuthController) Register() mvc.Result {
