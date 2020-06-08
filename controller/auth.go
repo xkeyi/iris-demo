@@ -18,8 +18,31 @@ type UserRegister struct {
 	Password  string  `json:"password"`
 }
 
-func (ac *AuthController) PostRegister() mvc.Result {
-	iris.New().Logger().Info(" user login ")
+func (ac *AuthController) BeforeActivation(b mvc.BeforeActivation) {
+	// b.Dependencies().Add/Remove
+	// b.Router().Use/UseGlobal/Done
+	// and any standard Router API call you already know
+
+	// 1-> Method
+	// 2-> Path
+	// 3-> The controller's function name to be parsed as handler
+	// 4-> Any handlers that should run before the MyCustomHandler
+	//b.Handle("GET", "/something/{id:long}", "MyCustomHandler", anyMiddleware...)
+
+	b.Handle("POST", "/register", "Register")
+	b.Handle("POST", "/login", "Login")
+}
+
+func (ac *AuthController) Get() {
+	iris.New().Logger().Info(" Get Test ")
+}
+
+func (ac *AuthController) Login() {
+	iris.New().Logger().Info(" Post Login ")
+}
+
+func (ac *AuthController) Register() mvc.Result {
+	iris.New().Logger().Info(" user Register ")
 
 	var registerData UserRegister
 	ac.Ctx.ReadJSON(&registerData)

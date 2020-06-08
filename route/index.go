@@ -13,6 +13,34 @@ func Route(app *iris.Application) {
 		ctx.View("views/index.html")
 	})
 
+	//mvc.New(app.Party("/auth")).
+	//	Handle(new(controller.AuthController))
+
+	v1 := app.Party("/v1")
+
+	{
+		// 用户认证相关
+		mvc.New(v1.Party("/auth")).Handle(new(controller.AuthController))
+
+		//authController := &controller.AuthController{}
+		//v1.Get("/test", authController.GetTest)
+		//routeAuth(v1)
+	}
+
 	// 用户认证相关
-	mvc.New(app.Party("/auth")).Handle(new(controller.AuthController))
+	//mvc.New(app.Party("/auth")).Handle(new(controller.AuthController))
+}
+
+func routeUser(v1 iris.Party) {
+	// 需要中间键的路由组
+	//user1 := v1.Party("/user", middleware)
+	//{
+	//	user1.Post()
+	//}
+	//
+	//// 不需要中间键的路由组
+	//user2 := v1.Party("/users")
+	//{
+	//	user2.Post()
+	//}
 }
