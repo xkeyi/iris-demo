@@ -9,13 +9,14 @@ import (
 	"login/model"
 	"login/util"
 	"login/middleware"
+	"login/http"
 )
 
 type AuthController struct {
 	Ctx iris.Context
 }
 
-type UserRegister struct {
+type RegisterUser struct {
 	Name      string  `json:"name"`
 	Username  string  `json:"username"`
 	Password  string  `json:"password"`
@@ -40,7 +41,7 @@ func (ac *AuthController) BeforeActivation(b mvc.BeforeActivation) {
 func (ac *AuthController) Get() {
 	iris.New().Logger().Info(" Get Test ")
 
-	peter := UserRegister{
+	peter := RegisterUser{
 		Name: "John",
 		Username:  "Doe",
 		Password:      "Neither FBI knows!!!",
@@ -51,6 +52,14 @@ func (ac *AuthController) Get() {
 
 func (ac *AuthController) Login() {
 	iris.New().Logger().Info(" Post Login ")
+
+	//ac.Ctx.StatusCode(401)
+	//ac.Ctx.JSON(iris.Map{
+	//	"code": 401,
+	//	"msg": "没有权限，请先认真",
+	//})
+	http.Error401(ac.Ctx, "没有权限，请先认真")
+	return
 
 	// 用户ID：1
 	token, err := util.GetJWTString(1)
@@ -69,7 +78,7 @@ func (ac *AuthController) Login() {
 }
 
 func (ac *AuthController) Me() {
-	peter := UserRegister{
+	peter := RegisterUser{
 		Name: "llz",
 		Username:  "llz",
 	}
@@ -77,49 +86,37 @@ func (ac *AuthController) Me() {
 	ac.Ctx.JSON(peter)
 }
 
-func (ac *AuthController) Register() mvc.Result {
+func (ac *AuthController) Register() {
 	iris.New().Logger().Info(" user Register ")
 
-	var registerData UserRegister
-	ac.Ctx.ReadJSON(&registerData)
+	var register_user RegisterUser
+	ac.Ctx.ReadJSON(&register_user)
 
 	// 验证
+	if register_user.Username == "" || register_user.Name == "" || register_user.Password == "" {
+		http.Error422(ac.Ctx, "用户名、姓名、密码均不能为空")
+		return
+	}
 	// 查询用户名是否存在
-	_, isExist := userService.GetByUsername(registerData.Username)
+	_, isExist := userService.GetByUsername(register_user.Username)
 	if isExist {
-		return mvc.Response{
-			Object: map[string]interface{}{
-				"status":  "1",
-				"msg": "用户名已被占用",
-			},
-		}
+		http.Error422(ac.Ctx, "用户名已被占用")
+		return
 	}
 	// 密码加密
-	hashed, _ := util.GeneratePassword(registerData.Password)
+	hashed, _ := util.GeneratePassword(register_user.Password)
 
 	user := model.User{
-		Username: registerData.Username,
-		Name: registerData.Name,
+		Username: register_user.Username,
+		Name: register_user.Name,
 		Password: hashed,
 	}
 
-	userId, err := userService.Insert(user)
-	if err != nil {
-		return mvc.Response{
-			Object: map[string]interface{}{
-				"status":  "1",
-				"msg": err,
-			},
-		}
-	}
+	userId, _ := userService.Insert(user)
+	token, _ := util.GetJWTString(userId)
 
-	// 生成 token
-	// 返回 token
-
-	return mvc.Response{
-		Object: map[string]interface{}{
-			"status":  "0",
-			"user_id": userId,
-		},
-	}
+	http.Success201(ac.Ctx, iris.Map{
+		"token": token,
+		"exp":   time.Now().Add(120 * time.Minute * time.Duration(1)).Unix(),
+	})
 }

@@ -14,6 +14,3 @@ type User struct {
 	DeletedAt     time.Time   `xorm:"deleted"` // 如果带DeletedAt这个字段和标签，xorm删除时自动软删除
 }
 
-func (u User) IsValid() bool {
-	return u.Id > 0
-}

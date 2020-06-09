@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/kataras/iris/v12"
-
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
 
@@ -11,6 +10,7 @@ import (
 	"login/config"
 	"login/database"
 	"login/route"
+	"login/http"
 )
 func main() {
 	app := iris.New()
@@ -51,19 +51,11 @@ func configation(app *iris.Application) {
 
 	//错误配置
 	//未发现错误
-	app.OnErrorCode(iris.StatusNotFound, func(context iris.Context) {
-		context.JSON(iris.Map{
-			"errmsg": iris.StatusNotFound,
-			"msg":    " not found ",
-			"data":   iris.Map{},
-		})
+	app.OnErrorCode(iris.StatusNotFound, func(ctx iris.Context) {
+		http.Error400(ctx, "未找到相关的资源")
 	})
 
-	app.OnErrorCode(iris.StatusInternalServerError, func(context iris.Context) {
-		context.JSON(iris.Map{
-			"errmsg": iris.StatusInternalServerError,
-			"msg":    " interal error ",
-			"data":   iris.Map{},
-		})
+	app.OnErrorCode(iris.StatusInternalServerError, func(ctx iris.Context) {
+		http.Error500(ctx, "服务器出错了，快去扣程序员小哥哥工资吧")
 	})
 }
