@@ -14,3 +14,11 @@ type User struct {
 	DeletedAt     time.Time   `xorm:"deleted"` // 如果带DeletedAt这个字段和标签，xorm删除时自动软删除
 }
 
+func (this *User) ResponseUser() interface{} {
+	return map[string]interface{} {
+		"id": this.Id,
+		"name": this.Name,
+		"username": this.Username,
+		"created_at": this.CreatedAt,
+	}
+}

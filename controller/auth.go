@@ -6,10 +6,9 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 
+	"login/http"
 	"login/model"
 	"login/util"
-	"login/middleware"
-	"login/http"
 )
 
 type AuthController struct {
@@ -18,6 +17,11 @@ type AuthController struct {
 
 type RegisterUser struct {
 	Name      string  `json:"name"`
+	Username  string  `json:"username"`
+	Password  string  `json:"password"`
+}
+
+type LoginUser struct {
 	Username  string  `json:"username"`
 	Password  string  `json:"password"`
 }
@@ -35,60 +39,28 @@ func (ac *AuthController) BeforeActivation(b mvc.BeforeActivation) {
 
 	b.Handle("POST", "/register", "Register")
 	b.Handle("POST", "/login", "Login")
-	b.Handle("POST", "/me", "Me", middleware.JWT.Serve)
-}
-
-func (ac *AuthController) Get() {
-	iris.New().Logger().Info(" Get Test ")
-
-	peter := RegisterUser{
-		Name: "John",
-		Username:  "Doe",
-		Password:      "Neither FBI knows!!!",
-	}
-	//手动设置内容类型: ctx.ContentType("application/javascript")
-	ac.Ctx.JSON(peter)
 }
 
 func (ac *AuthController) Login() {
-	iris.New().Logger().Info(" Post Login ")
+	var login_user LoginUser
+	ac.Ctx.ReadJSON(&login_user)
 
-	//ac.Ctx.StatusCode(401)
-	//ac.Ctx.JSON(iris.Map{
-	//	"code": 401,
-	//	"msg": "没有权限，请先认真",
-	//})
-	http.Error401(ac.Ctx, "没有权限，请先认真")
-	return
-
-	// 用户ID：1
-	token, err := util.GetJWTString(1)
-	if err != nil {
-		ac.Ctx.StatusCode(500)
-		ac.Ctx.JSON(iris.Map{
-			"status": 500,
-			"msg": err,
-		})
+	// 验证
+	if login_user.Username == "" || login_user.Password == "" {
+		http.Error422(ac.Ctx, "用户名和密码均不能为空")
+		return
 	}
 
-	ac.Ctx.JSON(iris.Map{
-		"token": token,
-		"exp": time.Now().Add(120 * time.Minute * time.Duration(1)).Unix(),
-	})
-}
-
-func (ac *AuthController) Me() {
-	peter := RegisterUser{
-		Name: "llz",
-		Username:  "llz",
+	userId := userService.Login(login_user.Username, login_user.Password)
+	if userId == 0 {
+		http.Error401(ac.Ctx, "用户名或密码错误")
+		return
 	}
-	//手动设置内容类型: ctx.ContentType("application/javascript")
-	ac.Ctx.JSON(peter)
+
+	http.Success201(ac.Ctx, getToken(userId))
 }
 
 func (ac *AuthController) Register() {
-	iris.New().Logger().Info(" user Register ")
-
 	var register_user RegisterUser
 	ac.Ctx.ReadJSON(&register_user)
 
@@ -113,10 +85,15 @@ func (ac *AuthController) Register() {
 	}
 
 	userId, _ := userService.Insert(user)
+
+	http.Success201(ac.Ctx, getToken(userId))
+}
+
+func getToken(userId int64) iris.Map{
 	token, _ := util.GetJWTString(userId)
 
-	http.Success201(ac.Ctx, iris.Map{
+	return iris.Map{
 		"token": token,
 		"exp":   time.Now().Add(120 * time.Minute * time.Duration(1)).Unix(),
-	})
+	}
 }

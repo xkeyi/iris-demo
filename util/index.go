@@ -4,6 +4,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"time"
 
+	"github.com/kataras/iris/v12"
 	"github.com/iris-contrib/middleware/jwt"
 )
 
@@ -47,4 +48,12 @@ func GetJWTString(id int64) (string, error) {
 	}
 
 	return tokenString, nil
+}
+
+// 获取登录用户ID
+func GetTokenUserId(ctx iris.Context) int64 {
+	jwtInfo := ctx.Values().Get("jwt").(*jwt.Token).Claims.(jwt.MapClaims)
+	userId := int64(jwtInfo["userId"].(float64))
+
+	return userId
 }

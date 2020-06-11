@@ -22,6 +22,9 @@ func Route(app *iris.Application) {
 		// 用户认证相关
 		mvc.New(v1.Party("/auth")).Handle(new(controller.AuthController))
 
+		// 用户相关
+		mvc.New(v1.Party("/users")).Handle(new(controller.UserController))
+
 		//authController := &controller.AuthController{}
 		//v1.Get("/test", authController.GetTest)
 		//routeAuth(v1)
