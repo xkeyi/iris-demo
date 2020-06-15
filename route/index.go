@@ -16,9 +16,17 @@ func Route(app *iris.Application) {
 	//mvc.New(app.Party("/auth")).
 	//	Handle(new(controller.AuthController))
 
-	v1 := app.Party("/v1")
+	v1 := app.Party("/v1").AllowMethods(iris.MethodOptions)
 
 	{
+		v1.Get("/about", func(ctx iris.Context) {
+			ctx.WriteString("Hello from /about")
+		})
+
+		test := controller.TestController{}
+
+		v1.Get("/test", test.Handler)
+
 		// 用户认证相关
 		mvc.New(v1.Party("/auth")).Handle(new(controller.AuthController))
 

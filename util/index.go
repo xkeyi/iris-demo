@@ -51,7 +51,7 @@ func GetJWTString(id int64) (string, error) {
 }
 
 // 获取登录用户ID
-func GetTokenUserId(ctx iris.Context) int64 {
+func GetTokenUserId(ctx iris.Context) (int64) {
 	jwtInfo := ctx.Values().Get("jwt").(*jwt.Token).Claims.(jwt.MapClaims)
 	userId := int64(jwtInfo["userId"].(float64))
 

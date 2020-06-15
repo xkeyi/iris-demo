@@ -30,5 +30,6 @@ func (uc *UserController) Me() {
 	userId := util.GetTokenUserId(uc.Ctx)
 
 	user := userService.GetByUserId(userId)
+	
 	uc.Ctx.JSON(user.ResponseUser())
 }

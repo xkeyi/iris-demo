@@ -9,6 +9,7 @@ import (
 	"login/http"
 	"login/model"
 	"login/util"
+	"login/middleware"
 )
 
 type AuthController struct {
@@ -39,6 +40,7 @@ func (ac *AuthController) BeforeActivation(b mvc.BeforeActivation) {
 
 	b.Handle("POST", "/register", "Register")
 	b.Handle("POST", "/login", "Login")
+	b.Handle("POST", "/refresh", "Refresh", middleware.JWT.Serve)
 }
 
 func (ac *AuthController) Login() {
@@ -96,4 +98,10 @@ func getToken(userId int64) iris.Map{
 		"token": token,
 		"exp":   time.Now().Add(120 * time.Minute * time.Duration(1)).Unix(),
 	}
+}
+
+func (ac *AuthController) Refresh() {
+	userId := util.GetTokenUserId(ac.Ctx)
+
+	ac.Ctx.JSON(userId)
 }
